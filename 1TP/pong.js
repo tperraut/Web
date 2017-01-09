@@ -1,3 +1,8 @@
+var canvas = {
+	width: 1000,
+	height: 600
+};
+
 var ball = {
 	x : 0,
 	y : 0,
@@ -52,7 +57,7 @@ function init_players() {
 	player1.x = 80;
 	player1.y = 230;
 	player1.display = document.getElementById("player1");
-	player2.x = 1000 - 80;
+	player2.x = canvas.width - 80;
 	player2.y = 230;
 	player2.display = document.getElementById("player2");
 }
@@ -62,7 +67,7 @@ function init_walls() {
 	wall1.y = 0;
 	wall1.display = document.getElementById("wall1");
 	wall2.x = 0;
-	wall2.y = 600 - wall2.height;
+	wall2.y = canvas.height - wall2.height;
 	wall2.display = document.getElementById("wall2");
 }
 
@@ -74,40 +79,61 @@ function draw(o) {
 }
 
 function move(e) {
-	var down = 600 - (wall1.height + player1.height);
-	var up = 20;
+	var down = canvas.height - (wall2.height + player1.height);
+	var up = wall1.height;
 
 	switch (e.key) {
 		case 'e':
 			if (player1.y - 10 >= up)
-				player1.y -= 10
+				player1.y -= 10;
 			break;
 		case 'd':
 			if (player1.y + 10 <= down)
-				player1.y += 10
+				player1.y += 10;
 			break;
 		case 'o':
 			if (player2.y - 10 >= up)
-				player2.y -= 10
+				player2.y -= 10;
 			break;
 		case 'l':
 			if (player2.y + 10 <= down)
-				player2.y += 10
+				player2.y += 10;
 			break;
 	}
 }
 
 function update() {
+	updateBall();
 	draw(ball);
 	draw(player1);
 	draw(player2);
 }
 
+function intersect(o1, o2){
+}
+
 function updateBall() {
 	var x = ball.x + ball.width / 2;
 	var y = ball.y + ball.height / 2;
-
-	
+	var next_x = x + ball.speed_x;
+	var next_y = y + ball.speed_y;
+	if (next_y > canvas.height - wall2.height) {
+		ball.speed_y = -ball.speed_y;
+		ball.x = next_x - ball.width / 2;
+		ball.y = canvas.height - (wall2.height + ball.height);
+	}
+	else if (next_y <= wall1.height) {
+		ball.speed_y = -ball.speed_y;
+		ball.x = next_x - ball.width / 2;
+		ball.y = wall1.height;
+	}
+	else if (next_x > canvas. - wall2.height) {
+		ball.speed_y = -ball.speed_y;
+		ball.x = next_x - ball.width / 2;
+		ball.y = canvas.height - wall2.height + ball.height;
+	}
+	ball.x = next_x - ball.width / 2;
+	ball.y = next_y - ball.height / 2;
 }
 
 init_ball();
