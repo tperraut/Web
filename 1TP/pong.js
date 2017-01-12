@@ -48,10 +48,10 @@ var wall2 = {
 };
 
 function init_ball() {
-	ball.x = 120;
-	ball.y = 290;
+	ball.x = 110;
+	ball.y = canvas.height / 2;
 	ball.display = document.getElementById("ball");
-}
+};
 
 function init_players() {
 	player1.x = 80;
@@ -60,7 +60,7 @@ function init_players() {
 	player2.x = canvas.width - 80;
 	player2.y = 230;
 	player2.display = document.getElementById("player2");
-}
+};
 
 function init_walls() {
 	wall1.x = 0;
@@ -69,14 +69,14 @@ function init_walls() {
 	wall2.x = 0;
 	wall2.y = canvas.height - wall2.height;
 	wall2.display = document.getElementById("wall2");
-}
+};
 
 function draw(o) {
 	o.display.style.top = o.y + "px";
 	o.display.style.left = o.x + "px";
 	o.display.style.width = o.width + "px";
 	o.display.style.height = o.height + "px";
-}
+};
 
 function move(e) {
 	var down = canvas.height - (wall2.height + player1.height);
@@ -99,42 +99,104 @@ function move(e) {
 			if (player2.y + 10 <= down)
 				player2.y += 10;
 			break;
+		case ' ':
+			ball.speed_x = 4;
+			ball.speed_y = 4;
+			break;
 	}
-}
+};
 
 function update() {
 	updateBall();
 	draw(ball);
 	draw(player1);
 	draw(player2);
-}
+};
 
-function intersect(o1, o2){
-}
+function dx(xo, yo, nx, ny, y) {
+	try {
+		return ((nx - x0) * (y - y0) / (ny - y0));
+	}
+	catch (e) {
+		return (0);
+	}
+};
+
+function dy(xo, yo, nx, ny, x) {
+	try {
+		return ((ny - y0) * (x - x0) / (nx - x0));
+	}
+	catch (e) {
+		return (0);
+	}
+};
+
+function reset(b) {
+	if (b) {
+		ball.x = player1.x + 10 + player1.width;
+		ball.y = canvas.height / 2;
+	}
+	else {
+		ball.x = player2.x - 10 - ball.width;
+		ball.y = canvas.height / 2;
+	}
+	ball.speed_x = 0;
+	ball.speed_y = 0;
+};
 
 function updateBall() {
-	var x = ball.x + ball.width / 2;
-	var y = ball.y + ball.height / 2;
-	var next_x = x + ball.speed_x;
-	var next_y = y + ball.speed_y;
-	if (next_y > canvas.height - wall2.height) {
+	var x0 = ball.x + ball.width / 2;
+	var y0 = ball.y + ball.height / 2;
+	var nx = x0 + ball.speed_x;
+	var ny = y0 + ball.speed_y;
+
+	//Wall1 collision
+	if (ny < wall1.height) {
+		var y = wall1.height;
+		nx = x0 + dx(x0, y0, nx, ny, y);
+		ny = y;
 		ball.speed_y = -ball.speed_y;
-		ball.x = next_x - ball.width / 2;
-		ball.y = canvas.height - (wall2.height + ball.height);
 	}
-	else if (next_y <= wall1.height) {
+	//Wall2 collision
+	if (ny > canvas.height - wall2.height) {
+		var y = canvas.height - wall2.height;
+		nx = x0 + dx(x0, y0, nx, ny, y);
+		ny = y;
 		ball.speed_y = -ball.speed_y;
-		ball.x = next_x - ball.width / 2;
-		ball.y = wall1.height;
 	}
-	else if (next_x > canvas. - wall2.height) {
-		ball.speed_y = -ball.speed_y;
-		ball.x = next_x - ball.width / 2;
-		ball.y = canvas.height - wall2.height + ball.height;
+	//Player1 collision
+	if (nx < player1.x + player1.width) {
+		var x = player1.x + player1.width;
+		var y = y0 + dy(x0, y0, nx, ny, x);
+		if (y > player1.y && y < player1.y + player1.height) {
+			nx = x;
+			ny = y;
+			ball.speed_x = -ball.speed_x;
+		}
+		else {
+			player2.score += 1;
+			reset(false);
+			return;
+		}
 	}
-	ball.x = next_x - ball.width / 2;
-	ball.y = next_y - ball.height / 2;
-}
+	//Player2 collision
+	if (nx > player2.x) {
+		var x = player2.x;
+		var y = y0 + dy(x0, y0, nx, ny, x);
+		if (y > player2.y && y < player2.y + player2.height) {
+			nx = x;
+			ny = y;
+			ball.speed_x = -ball.speed_x;
+		}
+		else {
+			player1.score += 1;
+			reset(true);
+			return;
+		}
+	}
+	ball.x = nx - ball.width / 2;
+	ball.y = ny - ball.height / 2;
+};
 
 init_ball();
 init_players();
@@ -142,4 +204,4 @@ init_walls();
 draw(wall1);
 draw(wall2);
 document.addEventListener("keydown", move);
-setInterval(update, 1000/60);
+setInterval(update, 1000/30);
